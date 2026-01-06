@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Kru Pai Classroom · Matrix Verb Form (20)</title>
+<style>
+  :root{
+    --bg:#0b0f10; --ink:#e7ffe7; --muted:#9fe3b1;
+    --card:#0e1416; --line:#13331d; --glow:#2ef4a3; --glow2:#7affe0;
+    --bad:#ff7a7a; --ok:#5cf1a9; --accent:#b4ff39;
+    --shadow:0 16px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"Prompt", system-ui, Segoe UI, Arial, sans-serif;}
+  /* Matrix rain canvas pinned behind content */
+  #matrix-bg{position:fixed;inset:0;z-index:-1;background:#000;opacity:.35}
+  header{
+    position:sticky; top:0; z-index:5;
+    background:linear-gradient(120deg,rgba(8,20,12,.86),rgba(6,22,10,.86));
+    border-bottom:2px solid var(--accent); padding:12px 16px; backdrop-filter: blur(6px);
+  }
+  .brand{font-weight:900;letter-spacing:.4px;font-size:clamp(18px,6vw,22px);display:flex;justify-content:space-between;align-items:center}
+  .badge{font-size:12px;font-weight:800;color:#0b160f;background:var(--accent);padding:4px 8px;border-radius:999px}
+  main{max-width:980px;margin:0 auto;padding:16px}
+  .card{background:linear-gradient(180deg,rgba(12,18,16,.85),rgba(14,22,18,.75));border:1.5px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin:12px 0;position:relative;overflow:hidden}
+  .title{font-weight:900;font-size:clamp(22px,6vw,30px);text-shadow:0 0 18px rgba(46,244,163,.25)}
+  .sub{color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .input{border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:800;min-width:240px;background:#0b1411;color:var(--ink);outline:none}
+  .input:focus{box-shadow:0 0 0 3px rgba(46,244,163,.2);border-color:#1f6f45}
+  .btn{
+    border:0;border-radius:16px;padding:14px 18px;font-weight:900;cursor:pointer;
+    box-shadow:0 0 0 0 rgba(46,244,163,.0), 0 10px 30px rgba(0,0,0,.35);
+    transition:transform .1s ease, box-shadow .15s ease, filter .2s ease; color:#04150b;
+  }
+  .btn:hover{transform:translateY(-1px);filter:saturate(1.1)}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{background:linear-gradient(120deg,#2ef4a3,#7affe0);}
+  .btn.alt{background:#0a1912;color:var(--ink);border:1.5px solid var(--line)}
+  .btn.pink{background:linear-gradient(120deg,#7affe0,#2ef4a3);}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:#0a1912;border:1.5px solid var(--line);border-radius:999px;padding:8px 12px;font-weight:800}
+  .progress{height:12px;background:#0a1912;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;margin:12px 0}
+  .progress>span{display:block;height:100%;background:linear-gradient(90deg,#2ef4a3,#7affe0);width:0%;box-shadow:0 0 18px rgba(46,244,163,.55)}
+  .qbox{background:#08140e;border:1.5px solid var(--line);border-radius:18px;padding:18px;font-size:clamp(20px,4.8vw,28px);font-weight:900;box-shadow:inset 0 0 40px rgba(46,244,163,.05)}
+  .ans{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+  @media(min-width:560px){ .ans{grid-template-columns:repeat(2,1fr)} }
+  @media(min-width:860px){ .ans{grid-template-columns:repeat(3,1fr)} }
+  .choice{
+
+    border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:900;background:#0d1813;color:var(--ink);
+    cursor:pointer;display:flex;justify-content:center;align-items:center;text-align:center;
+    box-shadow:inset 0 0 0 0 rgba(46,244,163,.0), 0 8px 20px rgba(0,0,0,.3);
+    transition:box-shadow .15s ease, transform .08s ease, border-color .15s ease;
+    font-size: clamp(26px, 4.2vw, 34px);
+  
+}
+  .choice:hover{box-shadow:inset 0 0 30px rgba(46,244,163,.06), 0 10px 26px rgba(0,0,0,.36)}
+  .choice.correct{border-color:var(--ok);box-shadow:inset 0 0 36px rgba(92,241,169,.18), 0 12px 32px rgba(92,241,169,.25)}
+  .choice.wrong{border-color:var(--bad);box-shadow:inset 0 0 36px rgba(255,122,122,.12), 0 12px 32px rgba(255,122,122,.25)}
+  .feedback{margin-top:12px;border-radius:14px;padding:12px;font-weight:800;display:none}
+  .fb-ok{background:rgba(92,241,169,.08);border:1.5px solid rgba(92,241,169,.5);color:#baffd8;text-shadow:0 0 16px rgba(92,241,169,.45)}
+  .fb-bad{background:rgba(255,122,122,.08);border:1.5px solid rgba(255,122,122,.5);color:#ffd1d1}
+  .hidden{display:none!important}
+  .footer-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .footer-nav .btn{flex:1;min-width:180px}
+  /* confetti (green sparks) */
+  .pop{position:fixed;pointer-events:none;font-size:26px;will-change:transform,opacity;animation:pop 900ms ease-out forwards;filter:drop-shadow(0 0 6px rgba(46,244,163,.9))}
+  @keyframes pop{
+    0%{transform:translate(0,0) scale(.9) rotate(0deg);opacity:1}
+    100%{transform:translate(var(--dx),var(--dy)) scale(.7) rotate(var(--rot));opacity:0}
+  }
+  /* prize modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:30}
+  .overlay.show{display:flex}
+  .modal{background:linear-gradient(180deg,#0b1411,#0f1d16);border-radius:22px;border:2px solid var(--accent);box-shadow:0 28px 60px rgba(0,0,0,.48);padding:18px;width:min(92vw,640px);text-align:center}
+  .boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .box{background:linear-gradient(135deg,#173e26,#1a6b3e);border:2px solid #2ef4a3;border-radius:18px;padding:26px 12px;cursor:pointer;font-weight:900;color:#e6fff2;text-shadow:0 0 10px rgba(46,244,163,.45)}
+  .rules{margin:10px 0 0 18px; color:var(--muted)}
+  .logo{position:absolute;right:12px;top:12px;font-weight:900;color:#06140e;background:var(--accent);padding:6px 10px;border-radius:12px}
+
+/* ✨ extra sparkle */
+.choice{
+  position:relative;
+}
+.choice::after{
+  content:"";
+  position:absolute; inset:-2px;
+  border-radius:16px;
+  background:linear-gradient(120deg, transparent, rgba(122,255,224,.35), transparent);
+  opacity:.0;
+  animation:sweep 2.2s linear infinite;
+}
+@keyframes sweep{
+  0%{opacity:0; transform:translateX(-30%)}
+  50%{opacity:.45}
+  100%{opacity:0; transform:translateX(30%)}
+}
+.choice.correct::after{opacity:.6}
+
+
+  /* emoji score bar */
+  .emoji-bar{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    padding:6px 10px;
+    min-height:38px;
+    margin:10px 0 8px;
+    background:rgba(10,25,18,.60);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    font-size:26px;
+    align-items:center;
+  }
+  .emoji-bar span{display:inline-block}
+  @keyframes popIn{
+    from{transform:scale(.6);opacity:0}
+    to{transform:scale(1);opacity:1}
+  }
+
+</style>
+</head>
+<body>
+<canvas id="matrix-bg"></canvas>
+
+<header>
+  <div class="brand">
+    <span>Kru Pai Classroom · Matrix Verb Form · 20</span>
+    <span class="badge">Tense Hero</span>
+  </div>
+</header>
+
+<main>
+  <!-- Start -->
+  <section id="start" class="card">
+    <div class="logo">Kru Pai Classroom</div>
+    <div class="title">🟢 ภารกิจ Matrix · เลือกคำกริยาให้ตรงกับประโยค</div>
+    <p class="sub">ครอบคลุม: <b>Present Simple · Present Continuous · Past Simple · Future Simple · Present Perfect</b></p>
+    <ul class="rules">
+      <li>อ่านข้อความ แล้วเลือกคำกริยาที่ <b>เข้ากับบริบท</b> (เช่น now / yesterday / already)</li>
+      <li>ถูก +1 คะแนน · ผิด 0 คะแนน</li>
+      <li>ครบ 20 ข้อ คะแนน <b>≥ 90%</b> ➜ เปิด <b>กล่องสุ่มรางวัล</b> 🎁</li>
+      <li>เล่นแนวตั้งบนมือถือดีที่สุด</li>
+    </ul>
+    <div class="row" style="margin-top:12px">
+      <input id="player" class="input" placeholder="ใส่ชื่อเล่นเพื่อเริ่มเกม">
+      <button id="btnStart" class="btn primary">เริ่มเกม ▶</button>
+    </div>
+  </section>
+
+  <!-- Game -->
+  <section id="game" class="card hidden">
+    <div class="row" style="justify-content:space-between">
+      <span class="pill">ผู้เล่น: <b id="pname">-</b></span>
+      <span class="pill">ข้อที่ <b id="qnum">1</b>/20</span>
+      <span class="pill">คะแนน: <b id="score">0</b></span>
+    </div>
+    <div class="progress"><span id="bar"></span></div>
+    <div id="emojiBar" class="emoji-bar" aria-label="คะแนนแบบอิโมจิ"></div>
+    <div class="qbox" id="sentence">Loading…</div>
+    <div class="ans" id="options"></div>
+    <div id="fb" class="feedback"><div id="fbText">...</div></div>
+    <div class="footer-nav">
+      <button id="btnNext" class="btn pink" disabled>ข้อต่อไป ⟶</button>
+      <button id="btnReveal" class="btn alt">ขอดูเฉลย</button>
+    </div>
+  </section>
+
+  <!-- Summary -->
+  <section id="summary" class="card hidden" style="text-align:center">
+    <div class="title">🎉 สรุปผล</div>
+    <div style="font-size:42px;font-weight:900;text-shadow:0 0 18px rgba(46,244,163,.4)" id="finalScore">0 / 20</div>
+    <div class="sub" id="resultText">-</div>
+    <div class="footer-nav" style="margin-top:14px">
+      <button id="btnReplay" class="btn primary">เล่นอีกครั้ง</button>
+      <button id="btnHome" class="btn alt">กลับหน้าแรก</button>
+    </div>
+  </section>
+</main>
+
+<!-- Prize Overlay -->
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <div style="font-weight:900;font-size:22px">🎁 เลือกกล่องสุ่มรางวัล</div>
+    <div class="sub">📸 แคปหน้าจอส่ง LINE เพื่อรับสิทธิ์ (เฉพาะคะแนน ≥ 90%)</div>
+    <div class="boxes" id="boxes"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Utilities
+  function $(id){return document.getElementById(id)}
+  function el(tag, cls, txt){var e=document.createElement(tag); if(cls) e.className=cls; if(txt!==undefined) e.textContent=txt; return e}
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+  // WebAudio minimal beeps
+  let audioCtx;
+  function beep(freq=760, dur=0.12, type="sine", gain=0.04){
+    try{
+      audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.value = gain;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start();
+      setTimeout(()=>{o.stop(); o.disconnect(); g.disconnect();}, dur*1000);
+    }catch(e){/* no audio */}
+  }
+  function okSound(){ beep(880,0.09,"triangle",0.05); setTimeout(()=>beep(1180,0.09,"triangle",0.05),90); }
+  function badSound(){ beep(220,0.15,"sawtooth",0.06); }
+  function winSound(){ beep(660,0.12,"triangle",0.06); setTimeout(()=>beep(990,0.16,"triangle",0.06),120); setTimeout(()=>beep(1320,0.20,"triangle",0.06),280); }
+
+  
+
+  // Emoji score bar (cute + clear)
+  const GOOD_EMOJI = ["🧸","⭐","🏆","✨"];
+  const BAD_EMOJI  = ["😭","😿","💧","😢"];
+  function addEmoji(isCorrect){
+    const bar = $("emojiBar");
+    if(!bar) return;
+    const span = document.createElement("span");
+    const src = isCorrect ? GOOD_EMOJI : BAD_EMOJI;
+    span.textContent = src[Math.floor(Math.random()*src.length)];
+    span.style.animation = "popIn .25s ease-out";
+    bar.appendChild(span);
+    // Keep it tidy on small screens
+    if(bar.childElementCount > 30){
+      bar.removeChild(bar.firstElementChild);
+    }
+  }
+  function resetEmojiBar(){
+    const bar = $("emojiBar");
+    if(bar) bar.innerHTML = "";
+  }
+
+// confetti (green symbols)
+  function bloom(x,y){
+    const EMO = ["✧","✦","✩","✪","✺","✹","❇"];
+    const count = 24;
+    for(let i=0;i<count;i++){
+      const e = document.createElement('div');
+      e.className = 'pop';
+      e.textContent = EMO[Math.floor(Math.random()*EMO.length)];
+      const angle = Math.random()*Math.PI*2;
+      const dist = 50 + Math.random()*140;
+      const dx = Math.cos(angle)*dist + "px";
+      const dy = Math.sin(angle)*dist + "px";
+      const rot = (Math.random()*160-80) + "deg";
+      e.style.setProperty('--dx', dx);
+      e.style.setProperty('--dy', dy);
+      e.style.setProperty('--rot', rot);
+      e.style.left = (x-10) + "px";
+      e.style.top  = (y-10) + "px";
+      document.body.appendChild(e);
+      setTimeout(()=>e.remove(), 950);
+    }
+  }
+
+  // Question bank (ported from the original version)
+  const BANK = [
+    {s:"I ___ to school every day.", opt:["go","went","will go","have gone","am going"], a:0, hint:"habit → Present Simple"},
+    {s:"She ___ her homework now.", opt:["does","did","will do","has done","is doing"], a:4, hint:"now → Present Continuous"},
+    {s:"We ___ a great movie last night.", opt:["watch","watched","will watch","have watched","are watching"], a:1, hint:"last night → Past Simple"},
+    {s:"He ___ his grandparents tomorrow.", opt:["visits","visited","will visit","has visited","is visiting"], a:2, hint:"tomorrow → Future Simple"},
+    {s:"They often ___ football after school.", opt:["play","played","will play","have played","are playing"], a:0, hint:"often → Present Simple"},
+    {s:"Look! The cat ___ on the sofa.", opt:["sleeps","slept","will sleep","has slept","is sleeping"], a:4, hint:"Look! (right now) → Present Continuous"},
+    {s:"I ___ my best friend yesterday.", opt:["meet","met","will meet","have met","am meeting"], a:1, hint:"yesterday → Past Simple"},
+    {s:"She ___ you later.", opt:["calls","called","will call","has called","is calling"], a:2, hint:"later (future) → Future Simple"},
+    {s:"The sun ___ in the east.", opt:["rises","rose","will rise","has risen","is rising"], a:0, hint:"fact → Present Simple"},
+    {s:"Be quiet! The baby ___.", opt:["cries","cried","will cry","has cried","is crying"], a:4, hint:"right now → Present Continuous"},
+    {s:"We ___ to Chiang Mai last summer.", opt:["travel","traveled","will travel","have traveled","are traveling"], a:1, hint:"last summer → Past Simple"},
+    {s:"I think it ___ tomorrow.", opt:["rains","rained","will rain","has rained","is raining"], a:2, hint:"prediction → Future Simple"},
+    {s:"She ___ a book every evening.", opt:["reads","read","will read","has read","is reading"], a:0, hint:"every evening → Present Simple"},
+    {s:"Listen! The birds ___.", opt:["sing","sang","will sing","have sung","are singing"], a:4, hint:"Listen! (now) → Present Continuous"},
+    {s:"He ___ to school yesterday.", opt:["doesn't go","didn't go","won't go","hasn't gone","isn't going"], a:1, hint:"yesterday + negative → Past Simple"},
+    {s:"Don't worry! I ___ you.", opt:["help","helped","will help","have helped","am helping"], a:2, hint:"decision now → Future Simple (will)"},
+    {s:"My dad ___ to work on weekdays.", opt:["drives","drove","will drive","has driven","is driving"], a:0, hint:"routine → Present Simple"},
+    {s:"Right now, I ___ dinner.", opt:["cook","cooked","will cook","have cooked","am cooking"], a:4, hint:"right now → Present Continuous"},
+    {s:"We ___ a picnic two days ago.", opt:["have","had","will have","have had","are having"], a:1, hint:"two days ago → Past Simple"},
+    {s:"I ___ the report already.", opt:["finish","finished","will finish","have finished","am finishing"], a:3, hint:"already → Present Perfect"}
+  ];
+
+  let order=[], idx=0, score=0, player="";
+  function start(){
+    player = ($("player").value||"Player").trim().slice(0,24);
+    $("pname").textContent = player || "Player";
+    order = shuffle([...Array(BANK.length).keys()]);
+    idx=0; score=0;
+    
+    resetEmojiBar();
+$("score").textContent = score;
+    $("start").classList.add("hidden");
+    $("summary").classList.add("hidden");
+    $("game").classList.remove("hidden");
+    render();
+  }
+
+  function render(){
+    const q = BANK[ order[idx] ];
+    $("qnum").textContent = (idx+1);
+    $("sentence").textContent = q.s;
+    $("bar").style.width = Math.round(idx/BANK.length*100)+"%";
+    $("fb").style.display="none";
+    $("btnNext").disabled = true;
+    const box = $("options"); box.innerHTML="";
+    q.opt.forEach((t,i)=>{
+      const b = el("button","choice",t);
+      b.addEventListener("click", (ev)=>choose(i, ev));
+      box.appendChild(b);
+    });
+  }
+
+  function choose(choice, ev){
+    const q = BANK[ order[idx] ];
+    const buttons = Array.from(document.querySelectorAll(".choice"));
+    buttons.forEach((b,i)=>{
+      if(i===q.a) b.classList.add("correct");
+      if(i===choice && i!==q.a) b.classList.add("wrong");
+    });
+    const ok = (choice===q.a);
+    if(ok){
+      addEmoji(true);
+      score++; $("score").textContent = score;
+      $("fb").className="feedback fb-ok";
+      $("fbText").innerHTML="ถูกต้อง! +1 — "+q.hint;
+      if(ev){ bloom(ev.clientX, ev.clientY); }
+      okSound();
+    }else{
+      addEmoji(false);
+      $("fb").className="feedback fb-bad";
+      $("fbText").innerHTML="ยังไม่ใช่ — "+q.hint;
+      badSound();
+    }
+    $("fb").style.display="block";
+    $("btnNext").disabled = false;
+  }
+
+  function reveal(){
+    const q = BANK[ order[idx] ];
+    $("fb").className="feedback fb-bad";
+    $("fbText").innerHTML = "เฉลย: <b>"+q.opt[q.a]+"</b> — "+q.hint;
+    $("fb").style.display="block";
+    $("btnNext").disabled = false;
+  }
+
+  function nextQ(){
+    idx++;
+    if(idx>=BANK.length){
+      if(score>=Math.ceil(BANK.length*0.9)){ openPrize(); winSound(); }
+      else { showSummary(); }
+      return;
+    }
+    render();
+  }
+
+  function showSummary(){
+    $("game").classList.add("hidden");
+    $("summary").classList.remove("hidden");
+    $("finalScore").textContent = score+" / "+BANK.length;
+    $("resultText").textContent = score>=Math.ceil(BANK.length*0.9)
+      ? "สุดยอด! พร้อมลุ้นรางวัล 🎁"
+      : (score>=Math.ceil(BANK.length*0.7) ? "เก่งมาก! ใกล้ถึง 90% แล้ว" : "ไม่เป็นไร ลองใหม่ได้ 🌼");
+  }
+
+  function openPrize(){
+    const rewards = shuffle(["💖 หัวใจ","🌼 ดอกไม้","🧸 ตุ๊กตา","🎟️ ตั๋วหมุนวงล้อ"]).slice(0,3);
+    const boxes = $("boxes"); boxes.innerHTML="";
+    rewards.forEach(label=>{
+      const b = el("div","box"); b.textContent="🎁 คลิกเพื่อเปิด";
+      b.addEventListener("click", ()=>{ b.innerHTML="✨ คุณได้ <b>"+label+"</b>!<div class='sub'>📸 แคปหน้าจอส่ง LINE เพื่อรับสิทธิ์</div>"; },{once:true});
+      boxes.appendChild(b);
+    });
+    $("overlay").classList.add("show");
+  }
+
+  // Close overlay by clicking outside
+  $("overlay").addEventListener("click", (e)=>{ if(e.target.id==="overlay"){ $("overlay").classList.remove("show"); showSummary(); } });
+
+  // Wire
+  document.addEventListener("DOMContentLoaded", ()=>{
+    $("btnStart").addEventListener("click", start);
+    $("player").addEventListener("keydown", (e)=>{ if(e.key==="Enter") start(); });
+    $("btnNext").addEventListener("click", nextQ);
+    $("btnReveal").addEventListener("click", reveal);
+    $("btnReplay").addEventListener("click", start);
+    $("btnHome").addEventListener("click", ()=>{ resetEmojiBar(); $("summary").classList.add("hidden"); $("start").classList.remove("hidden"); });
+  });
+
+  // Matrix rain background
+  const c = $("matrix-bg");
+  const ctx = c.getContext("2d");
+  let w,h,cols,ypos;
+  function resize(){
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+    const fontSize = 16;
+    cols = Math.floor(w / fontSize);
+    ypos = Array(cols).fill(0);
+    ctx.font = fontSize + "px monospace";
+  }
+  window.addEventListener("resize", resize);
+  resize();
+  const glyphs = "アァカサタナハマヤャラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  function matrix(){
+    ctx.fillStyle = "rgba(0, 12, 8, 0.20)";
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = "#2ef4a3";
+    for(let i=0; i<ypos.length; i++){
+      const text = glyphs[Math.floor(Math.random()*glyphs.length)];
+      const x = i*16, y = ypos[i]*16;
+      ctx.fillText(text, x, y);
+      if(y > h && Math.random() > 0.975) ypos[i] = 0;
+      else ypos[i]++;
+    }
+    requestAnimationFrame(matrix);
+  }
+  matrix();
+})();
+</script>
+</body>
+</html>
